@@ -8,6 +8,7 @@ var ping = require('./lib/ping');
 var auth = require('./lib/auth');
 var subscribeForSpots = require('./lib/subscribe_for_spots');
 var startTime;
+
 var protocol = new ProtoMessages([
     {
         file: 'node_modules/connect-protobuf-messages/src/main/protobuf/CommonMessages.proto'
@@ -37,8 +38,9 @@ connect.onConnect = function () {
     auth({
         clientId: '7_5az7pj935owsss8kgokcco84wc8osk0g0gksow0ow4s4ocwwgc',
         clientSecret: '49p1ynqfy7c4sw84gwoogwwsk8cocg8ow8gc8o80c0ws448cs4'
-    }).then(function (respond) {
+    }).then(function (response) {
         console.log('auth');
+        console.log('response:', response)
         subscribeForSpots({
             accountId: 62002,
             accessToken: 'test002_access_token',
@@ -66,3 +68,23 @@ protocol.load();
 protocol.build();
 
 connect.start();
+
+startTime = Date.now();
+ping(1000);
+auth({
+    clientId: '7_5az7pj935owsss8kgokcco84wc8osk0g0gksow0ow4s4ocwwgc',
+    clientSecret: '49p1ynqfy7c4sw84gwoogwwsk8cocg8ow8gc8o80c0ws448cs4'
+}).then(function (response) {
+    console.log('auth');
+    console.log('response:', response)
+    subscribeForSpots({
+        accountId: 62002,
+        accessToken: 'test002_access_token',
+        symblolName: 'EURUSD'
+    }).then(function (respond) {
+        console.log('subscribed for spots');
+        connect.on(protocol.getPayloadTypeByName('ProtoOASpotEvent'), function (msg) {
+            console.log('Bid price: ' + msg.bidPrice + ', ask price: ' + msg.askPrice);
+        });
+    });
+});
